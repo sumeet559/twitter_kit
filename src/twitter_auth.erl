@@ -150,7 +150,7 @@ get_oauth_params({consumer_key, ConsumerKey},
 
 get_oauth_params({consumer_key, ConsumerKey},
                  {access_token, AccessToken}) ->
-    Nonce = base64:encode_to_string(crypto:rand_bytes(32)),
+    Nonce = base64:encode_to_string(crypto:strong_rand_bytes(32)),
     Timestamp = twitter_util:get_timestamp(),
     get_oauth_params({consumer_key, ConsumerKey},
                      {access_token, AccessToken},
