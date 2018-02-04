@@ -1,7 +1,7 @@
 -module(twitter).
 -author("Yuce Tekol").
 
--export([new/1, get/2, get/3, post/3]).
+-export([new/1, get/2, get/3, post/3, post/4]).
 -export([prev/1, next/1]).
 
 -include("twitter.hrl").
