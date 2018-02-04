@@ -267,7 +267,7 @@ handle_connection(Callback, RequestId) ->
         % stream received data
         {http, {RequestId, stream, Data}} ->
             spawn(fun() ->
-                DecodedData = twerl_util:decode(Data),
+                DecodedData = json_decode(Data),
                 Callback(DecodedData)
             end),
             handle_connection(Callback, RequestId);
