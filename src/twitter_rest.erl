@@ -272,6 +272,7 @@ handle_connection(Callback, RequestId, JsonDecode) ->
               catch
                 _:_ ->
                   Callback(Data)
+              end
             end),
             handle_connection(Callback, RequestId, JsonDecode);
 
