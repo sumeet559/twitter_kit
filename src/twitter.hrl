@@ -10,6 +10,7 @@
 -record(twitter, {
     auth = nil,
     format = json,
+    stream_domain = "stream.twitter.com",
     domain = "api.twitter.com",
     upload_domain = "upload.twitter.com",
     secure = true,
