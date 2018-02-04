@@ -37,7 +37,7 @@ post(#twitter{auth=#oauth{token=Token} = Auth,
         when Token =/= "" ->
     BaseUrl = make_stream_url(Twitter, "statuses/filter", ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
-    {ok, Body} = request(post, Request),
+    {ok, Body} = request(post_stream, Request),
     handle_connection(Callback, Body).
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
@@ -218,6 +218,16 @@ request(Request) ->
 request(post, Request) ->
     io:format("JUST SOOOOO ~p~n",[Request]),
     case httpc:request(post, Request, [], [{body_format, binary}]) of
+        {ok, {{_, 200, _}, _, Body}} ->
+            {ok, Body};
+        {ok, {{_, Status, _}, _, Body}} ->
+            {error, {Status, Body}};
+        {error, _Reason} = Reply ->
+            Reply end;
+
+request(post_stream, Request) ->
+    io:format("JUST SOOOOO ~p~n",[Request]),
+    case httpc:request(post, Request, [], [{sync, false}, {stream, self}]) of
         {ok, {{_, 200, _}, _, Body}} ->
             {ok, Body};
         {ok, {{_, Status, _}, _, Body}} ->
