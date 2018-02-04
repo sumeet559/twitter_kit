@@ -38,7 +38,7 @@ post(#twitter{auth=#oauth{token=Token} = Auth,
     BaseUrl = make_stream_url(Twitter, "statuses/filter", ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
     {ok, Body} = request(post_stream, Request),
-    handle_connection(Callback, Body).
+    handle_connection(Callback, Body, JsonDecode).
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
@@ -258,16 +258,16 @@ make_url(#twitter{domain = Domain,
 
 % TODO maybe change {ok, stream_closed} to an error?
 -spec handle_connection(term(), term()) -> {ok, terminate} | {ok, stream_closed} | {error, term()}.
-handle_connection(Callback, RequestId) ->
+handle_connection(Callback, RequestId, JsonDecode) ->
     receive
         % stream opened
         {http, {RequestId, stream_start, _Headers}} ->
-            handle_connection(Callback, RequestId);
+            handle_connection(Callback, RequestId, JsonDecode);
 
         % stream received data
         {http, {RequestId, stream, Data}} ->
             spawn(fun() ->
-                DecodedData = json_decode(Data),
+                DecodedData = JsonDecode(Data),
                 Callback(DecodedData)
             end),
             handle_connection(Callback, RequestId);
