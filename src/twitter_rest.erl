@@ -228,6 +228,14 @@ request(post, Request) ->
 
 -spec make_url(#twitter{}, path(), query_string()) -> url().
 
+make_stream_url(#twitter{stream_domain = Domain,
+                  api_version = ApiVersion,
+                  secure = Secure,
+                  format = Format}, ApiPath, QryStr) ->
+    Scheme = ?select(Secure, "https", "http"),
+    Path = lists:concat([ApiVersion, "/", ApiPath, ".", Format]),
+    twitter_util:make_url({Scheme, Domain, Path, QryStr}).
+
 make_url(#twitter{domain = Domain,
                   api_version = ApiVersion,
                   secure = Secure,
