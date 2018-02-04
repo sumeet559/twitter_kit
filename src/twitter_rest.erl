@@ -208,6 +208,7 @@ request(Request) ->
 
 
 request(post, Request) ->
+    io:format("JUST SOOOOO ~p~n",[Request]),
     case httpc:request(post, Request, [], [{body_format, binary}]) of
         {ok, {{_, 200, _}, _, Body}} ->
             {ok, Body};
