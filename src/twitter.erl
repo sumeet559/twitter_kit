@@ -84,8 +84,8 @@ post(Api, {statuses, retweet, Id}, Args) ->
 post(Api, {media, upload}, MediaInfo) ->
     twitter_rest:post(Api, "media/upload", MediaInfo).
 
-post(Api, {stream}, Params) ->
-    twitter_rest:post(Api, "statuses/filter", Params).
+post(Api, {stream}, Params, Callback) ->
+    twitter_rest:post(Api, "statuses/filter", Params, Callback).
 
 
 prev(X) ->
