@@ -1,7 +1,7 @@
 -module(twitter_rest).
 -author("Yuce Tekol").
 
--export([get/3, post/3, prev/1, next/1]).
+-export([get/3, post/3, post/4, prev/1, next/1]).
 -export([make_cursor/5, make_timeline/5]).
 -export([make_get_cursor/4, make_get_timeline/4]).
 
@@ -38,7 +38,7 @@ post(#twitter{auth=#oauth{token=Token} = Auth,
     BaseUrl = make_url(Twitter, Path, ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
     {ok, Body} = request(post, Request),
-    handle_connection(Callback, Body);
+    handle_connection(Callback, Body).
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
