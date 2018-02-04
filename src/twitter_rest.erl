@@ -257,7 +257,6 @@ make_url(#twitter{domain = Domain,
     twitter_util:make_url({Scheme, Domain, Path, QryStr}).
 
 % TODO maybe change {ok, stream_closed} to an error?
--spec handle_connection(term(), term()) -> {ok, terminate} | {ok, stream_closed} | {error, term()}.
 handle_connection(Callback, RequestId, JsonDecode) ->
     receive
         % stream opened
