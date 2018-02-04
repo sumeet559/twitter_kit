@@ -35,7 +35,7 @@ get(#twitter{auth=#oauth{app_token=BT} = Auth,
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, "statuses/filter", Args, Callback)
         when Token =/= "" ->
-    BaseUrl = make_url(Twitter, Path, ""),
+    BaseUrl = make_url(Twitter, "statuses/filter", ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
     {ok, Body} = request(post, Request),
     handle_connection(Callback, Body).
