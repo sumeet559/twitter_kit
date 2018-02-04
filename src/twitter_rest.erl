@@ -232,6 +232,8 @@ request(post_stream, Request) ->
             {ok, Body};
         {ok, {{_, Status, _}, _, Body}} ->
             {error, {Status, Body}};
+      {ok, RequestId} ->
+            {ok, RequestId};
         {error, _Reason} = Reply ->
             Reply end.
 
