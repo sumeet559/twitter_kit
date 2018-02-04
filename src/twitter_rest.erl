@@ -33,12 +33,12 @@ get(#twitter{auth=#oauth{app_token=BT} = Auth,
 -spec post(#twitter{}, path(), query_args()) -> {ok, term()}.
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
-             json_decode=JsonDecode} = Twitter, "statuses/filter", Args)
+             json_decode=JsonDecode} = Twitter, "statuses/filter", Args, Callback)
         when Token =/= "" ->
     BaseUrl = make_url(Twitter, Path, ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
     {ok, Body} = request(post, Request),
-    {ok, JsonDecode(Body)};
+    handle_connection(Callback, Body);
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
@@ -235,4 +235,43 @@ make_url(#twitter{domain = Domain,
     Scheme = ?select(Secure, "https", "http"),
     Path = lists:concat([ApiVersion, "/", ApiPath, ".", Format]),
     twitter_util:make_url({Scheme, Domain, Path, QryStr}).
+
+% TODO maybe change {ok, stream_closed} to an error?
+-spec handle_connection(term(), term()) -> {ok, terminate} | {ok, stream_closed} | {error, term()}.
+handle_connection(Callback, RequestId) ->
+    receive
+        % stream opened
+        {http, {RequestId, stream_start, _Headers}} ->
+            handle_connection(Callback, RequestId);
+
+        % stream received data
+        {http, {RequestId, stream, Data}} ->
+            spawn(fun() ->
+                DecodedData = twerl_util:decode(Data),
+                Callback(DecodedData)
+            end),
+            handle_connection(Callback, RequestId);
+
+        % stream closed
+        {http, {RequestId, stream_end, _Headers}} ->
+            {ok, stream_end};
+
+        % connected but received error cod
+        % 401 unauthorised - authentication credentials rejected
+        {http, {RequestId, {{_, 401, _}, _Headers, _Body}}} ->
+            {error, unauthorised};
+
+        % 406 not acceptable - invalid request to the search api
+        {http, {RequestId, {{_, 406, _}, _Headers, Body}}} ->
+            {error, {invalid_params, Body}};
+
+        % connection error
+        % may happen while connecting or after connected
+        {http, {RequestId, {error, Reason}}} ->
+            {error, {http_error, Reason}};
+
+        % message send by us to close the connection
+        terminate ->
+            {ok, terminate}
+    end.
 
