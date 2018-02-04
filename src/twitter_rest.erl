@@ -33,6 +33,14 @@ get(#twitter{auth=#oauth{app_token=BT} = Auth,
 -spec post(#twitter{}, path(), query_args()) -> {ok, term()}.
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
+             json_decode=JsonDecode} = Twitter, "statuses/filter", Args)
+        when Token =/= "" ->
+    BaseUrl = make_url(Twitter, Path, ""),
+    Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
+    {ok, Body} = request(post, Request),
+    {ok, JsonDecode(Body)};
+
+post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
         when Token =/= "" ->
     BaseUrl = make_url(Twitter, Path, ""),
