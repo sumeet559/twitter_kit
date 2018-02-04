@@ -269,7 +269,7 @@ handle_connection(Callback, RequestId, JsonDecode) ->
                 DecodedData = JsonDecode(Data),
                 Callback(DecodedData)
             end),
-            handle_connection(Callback, RequestId);
+            handle_connection(Callback, RequestId, JsonDecode);
 
         % stream closed
         {http, {RequestId, stream_end, _Headers}} ->
