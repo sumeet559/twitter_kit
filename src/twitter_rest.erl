@@ -37,8 +37,7 @@ post(#twitter{auth=#oauth{token=Token} = Auth,
         when Token =/= "" ->
     BaseUrl = make_stream_url(Twitter, "statuses/filter", ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
-    {ok, Body} = request(post_stream, Request),
-    spawn_link(handle_connection(Callback, Body)).
+    request(post_stream, Request, Callback).
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
@@ -226,15 +225,18 @@ request(post, Request) ->
         {ok, {{_, Status, _}, _, Body}} ->
             {error, {Status, Body}};
         {error, _Reason} = Reply ->
-            Reply end;
+            Reply end.
 
-request(post_stream, Request) ->
+request(post_stream, Request, Callback) ->
     case httpc:request(post, Request, [], [{sync, false}, {stream, self}]) of
         {ok, {{_, 200, _}, _, Body}} ->
             {ok, Body};
         {ok, {{_, Status, _}, _, Body}} ->
             {error, {Status, Body}};
       {ok, RequestId} ->
+            spawn_link(fun() ->
+              ?MODULE:handle_connection(Callback, RequestId)
+            end),
             {ok, RequestId};
         {error, _Reason} = Reply ->
             Reply end.
