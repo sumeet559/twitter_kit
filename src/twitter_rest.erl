@@ -40,8 +40,7 @@ post(#twitter{auth=#oauth{token=Token} = Auth,
     {ok, Body} = request(post_stream, Request),
     spawn_link(fun() ->
       handle_connection(Callback, Body)
-    end),
-    {ok, Body}.
+    end).
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
