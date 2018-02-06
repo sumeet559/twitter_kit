@@ -38,9 +38,7 @@ post(#twitter{auth=#oauth{token=Token} = Auth,
     BaseUrl = make_stream_url(Twitter, "statuses/filter", ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
     {ok, Body} = request(post_stream, Request),
-    spawn_link(fun() ->
-      handle_connection(Callback, Body)
-    end).
+    spawn_link(handle_connection(Callback, Body)).
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
