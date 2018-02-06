@@ -38,16 +38,20 @@ post(#twitter{auth=#oauth{token=Token} = Auth,
     BaseUrl = make_stream_url(Twitter, "statuses/filter", ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
     {ok, Body} = request(post_stream, Request),
-    handle_connection(Callback, Body).
+    handle_connection(Callback, Body),
+    {ok, Body}.
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
         when Token =/= "" ->
     BaseUrl = make_url(Twitter, Path, ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
-    {ok, Body} = request(post, Request),
-    {ok, JsonDecode(Body)}.
-
+    case request(post, Request) of
+     {ok, Body} ->
+        {ok, JsonDecode(Body)};
+     {error, {Code, ErrorMsg}} ->
+        {error, JsonDecode(ErrorMsg)}.
+    end.
 
 -spec prev(#twitter_cursor{} | #twitter_timeline{}) -> pointer_return().
 -type  pointer_return() :: {ok, {#twitter_cursor{}, term()}} |
@@ -226,7 +230,6 @@ request(post, Request) ->
             Reply end;
 
 request(post_stream, Request) ->
-    io:format("JUST SOOOOO ~p~n",[Request]),
     case httpc:request(post, Request, [], [{sync, false}, {stream, self}]) of
         {ok, {{_, 200, _}, _, Body}} ->
             {ok, Body};
