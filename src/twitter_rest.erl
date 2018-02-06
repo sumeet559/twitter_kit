@@ -3,7 +3,7 @@
 
 -export([get/3, post/3, post/4, prev/1, next/1]).
 -export([make_cursor/5, make_timeline/5]).
--export([make_get_cursor/4, make_get_timeline/4, handle_connection/2]).
+-export([make_get_cursor/4, make_get_timeline/4]).
 
 -include("twitter.hrl").
 -include("util.hrl").
@@ -235,7 +235,7 @@ request(post_stream, Request, Callback) ->
             {error, {Status, Body}};
       {ok, RequestId} ->
             spawn_link(fun() ->
-              ?MODULE:handle_connection(Callback, RequestId)
+              handle_connection(Callback, RequestId)
             end),
             {ok, RequestId};
         {error, _Reason} = Reply ->
