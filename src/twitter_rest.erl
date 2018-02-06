@@ -33,9 +33,8 @@ get(#twitter{auth=#oauth{app_token=BT} = Auth,
 -spec post(#twitter{}, path(), query_args()) -> {ok, term()}.
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
-             json_decode=JsonDecode} = Twitter, "statuses/filter", Args, Callback)
+             json_decode=JsonDecode} = Twitter, {"statuses/filter", Parent}, Args, Callback)
         when Token =/= "" ->
-    Parent = self(),
     BaseUrl = make_stream_url(Twitter, "statuses/filter", ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
     spawn_link(fun() ->
