@@ -50,7 +50,7 @@ post(#twitter{auth=#oauth{token=Token} = Auth,
      {ok, Body} ->
         {ok, JsonDecode(Body)};
      {error, {Code, ErrorMsg}} ->
-        {error, JsonDecode(ErrorMsg)}.
+        {error, JsonDecode(ErrorMsg)}
     end.
 
 -spec prev(#twitter_cursor{} | #twitter_timeline{}) -> pointer_return().
