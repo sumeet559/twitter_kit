@@ -35,9 +35,25 @@ get(#twitter{auth=#oauth{app_token=BT} = Auth,
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, "statuses/filter", Args, Callback)
         when Token =/= "" ->
+    Parent = self(),
     BaseUrl = make_stream_url(Twitter, "statuses/filter", ""),
     Request = twitter_auth:make_post_request(Auth, BaseUrl, Args),
-    request(post_stream, Request, Callback).
+    spawn_link(fun() ->
+        case request(post_stream, Request, Callback) of
+            {error, unauthorised} ->
+                % Didn't connect, unauthorised
+                Parent ! {self(), client_exit, unauthorised};
+            {ok, stream_end} ->
+                % Connection closed normally
+                Parent ! {self(), client_exit, stream_end};
+            {ok, terminate} ->
+                % Connection closed normally
+                Parent ! {self(), client_exit, terminate};
+            {error, Error} ->
+                % Connection closed due to error
+                Parent ! {self(), client_exit, Error}
+        end
+    end).
 
 post(#twitter{auth=#oauth{token=Token} = Auth,
              json_decode=JsonDecode} = Twitter, Path, Args)
@@ -218,7 +234,6 @@ request(Request) ->
 
 
 request(post, Request) ->
-    io:format("JUST SOOOOO ~p~n",[Request]),
     case httpc:request(post, Request, [], [{body_format, binary}]) of
         {ok, {{_, 200, _}, _, Body}} ->
             {ok, Body};
@@ -234,10 +249,7 @@ request(post_stream, Request, Callback) ->
         {ok, {{_, Status, _}, _, Body}} ->
             {error, {Status, Body}};
       {ok, RequestId} ->
-            spawn_link(fun() ->
-              handle_connection(Callback, RequestId)
-            end),
-            {ok, RequestId};
+            handle_connection(Callback, RequestId);
         {error, _Reason} = Reply ->
             Reply end.
 
