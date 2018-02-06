@@ -3,7 +3,7 @@
 
 -export([get/3, post/3, post/4, prev/1, next/1]).
 -export([make_cursor/5, make_timeline/5]).
--export([make_get_cursor/4, make_get_timeline/4]).
+-export([make_get_cursor/4, make_get_timeline/4, handle_connection/2]).
 
 -include("twitter.hrl").
 -include("util.hrl").
