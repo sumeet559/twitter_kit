@@ -248,7 +248,7 @@ request(post_stream, Request, Callback) ->
         {ok, {{_, Status, _}, _, Body}} ->
             {error, {Status, Body}};
       {ok, RequestId} ->
-            handle_connection(Callback, RequestId);
+            handle_connection(Callback, RequestId, <<"">>);
         {error, _Reason} = Reply ->
             Reply end.
 
@@ -272,24 +272,30 @@ make_url(#twitter{domain = Domain,
     twitter_util:make_url({Scheme, Domain, Path, QryStr}).
 
 % TODO maybe change {ok, stream_closed} to an error?
-handle_connection(Callback, RequestId) ->
+handle_connection(Callback, RequestId, Chunk) ->
     receive
         % stream opened
         {http, {RequestId, stream_start, _Headers}} ->
-            handle_connection(Callback, RequestId);
+            handle_connection(Callback, RequestId, Chunk);
 
         % stream received data
         {http, {RequestId, stream, Data}} ->
-            spawn(fun() ->
-              try
-                DecodedData = jsx:decode(Data),
-                Callback(DecodedData)
-              catch
-                _:_ ->
-                  Callback(Data)
-              end
-            end),
-            handle_connection(Callback, RequestId);
+          case binary:longest_common_suffix([Data, <<"\r\n">>]) of
+              2 ->
+                spawn(fun() ->
+                  try
+                    DecodedData = jsx:decode(Data),
+                    Callback(DecodedData)
+                  catch
+                    _:_ ->
+                      Callback(Data)
+                  end
+                      end),
+                handle_connection(Callback, RequestId, Chunk);
+              _ ->
+                NewChunk = <<Chunk/binary, Data/binary>>,
+                handle_connection(Callback, RequestId, NewChunk)
+          end;
 
         % stream closed
         {http, {RequestId, stream_end, _Headers}} ->
