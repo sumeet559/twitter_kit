@@ -282,16 +282,17 @@ handle_connection(Callback, RequestId, Chunk) ->
         {http, {RequestId, stream, Data}} ->
           case binary:longest_common_suffix([Data, <<"\r\n">>]) of
               2 ->
+                LastChunk = <<Chunk/binary, Data/binary>>,
                 spawn(fun() ->
-                  try
-                    DecodedData = jsx:decode(Data),
-                    Callback(DecodedData)
-                  catch
-                    _:_ ->
-                      Callback(Data)
-                  end
+                        try
+                          DecodedData = jsx:decode(LastChunk),
+                          Callback(DecodedData)
+                        catch
+                          _:_ ->
+                            Callback(LastChunk)
+                        end
                       end),
-                handle_connection(Callback, RequestId, Chunk);
+                handle_connection(Callback, RequestId, <<"">>);
               _ ->
                 NewChunk = <<Chunk/binary, Data/binary>>,
                 handle_connection(Callback, RequestId, NewChunk)
